@@ -2,19 +2,19 @@ import enchant
 
 dictionary = enchant.Dict ('en_US')
 #dictionary = enchant.Dict ('en_GB')
-must = 'ier'
-may = 'quodfjlzxcvb'
+must = 'spe'
+may = 'quofjlzxcvb'
 letters = must + may
 for a in letters:
-    if a  in '': continue
+    if a not in 's': continue
     for b in letters:
-        if b not in 'i': continue
+        if b  in '': continue
         for c in letters:
-            if c  in  'e': continue
+            if c not in  'e': continue
             for d in letters:
                 if d not in 'e': continue
                 for e in letters:
-                    if e not in 'r': continue
+                    if e  in '': continue
                     candidate = f"{a}{b}{c}{d}{e}"
                     if dictionary.check (candidate):
                         truth =[c in candidate for c in must]
