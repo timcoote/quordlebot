@@ -3,7 +3,7 @@ import enchant
 dictionary = enchant.Dict ('en_US')
 #dictionary = enchant.Dict ('en_GB')
 must = 'ier'
-may = 'quodfjlzxcvb'
+may = 'quodfjzxcvb'
 letters = must + may
 for a in letters:
     if a  in '': continue
