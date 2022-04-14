@@ -19,6 +19,16 @@ NEWSPIDER_MODULE = 'words.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
+# Selenium to get js execution. Use headless chrome (I hope).
+
+SELENIUM_DRIVER_NAME = 'chrome'
+SELENIUM_DRIVER_EXECUTABLE_PATH = '/usr/local/bin/chromedriver'
+SELENIUM_DRIVER_ARGUMENTS=['-headless']
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy_selenium.SeleniumMiddleware': 800
+}
+
+
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
