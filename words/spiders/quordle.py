@@ -7,7 +7,7 @@ from time import sleep
 from candidates import candidates
 from enum import Enum, auto
 from collections import defaultdict
-
+import re
 import logging
 from selenium.webdriver.remote.remote_connection import LOGGER as seleniumLogger
 from urllib3.connectionpool import log as urllibLogger
@@ -28,6 +28,9 @@ def enter_word (word):
 class QuordleSpider (scrapy.Spider):
     name="quordle"
 
+    def __init__(self):
+        self.sent = []
+
     def process_key (self, key, game):
         #print (key)
         if key in ['Enter Key', 'Backspace Key']:
@@ -42,8 +45,22 @@ class QuordleSpider (scrapy.Spider):
         else:
             return works.WORKS, key[1]
 
+    def id_board (self, board):
+        print ("id_board", len(board.get()), board.__class__, dir(board))
+        #text = [scrapy.Selector (text=board.get()) for b in range(1,5)] #board.attrib['aria-label']
+        #text = [scrapy.Selector (text=board.get().xpath (f'//div[contains(@aria-label, "Game Board {i}")]').get()) for i in range(1,5)]
+        text = [scrapy.Selector (text=board.get()).xpath (f'//div[contains(@aria-label, "Game Board {i}")]').get() for i in range(1,5)]
+        for t in text:
+            if t:
+                print ([t[match.start():match.start()+15] for match in re.finditer('Game Board', t)])
+            else:
+                print ("no results board found!")
+            #print (text[3])
+
     def process_kb (self, keyboard, board):
         #breakpoint()
+        self.id_board (board)
+
         for i in range(1,5):  #timing of moving between boards isn't right. 
             must=''
             maybe=''
@@ -62,11 +79,17 @@ class QuordleSpider (scrapy.Spider):
                 if len (are) >= 5: continue # guessed this word (not quite: succeeds if they're not all in the same guess!)
                 #print (i, options := candidates(must, maybe, are, are_not))
                 options = candidates(must, maybe, sure_y=are, sure_n=are_not)
+                for s in self.sent:
+                    try:
+                        options.remove (s)  # throw away values that have been sent - cannot reliably spot these in output
+                    except ValueError:
+                        pass
                 print (f"i is {i}", are, are_not, must, maybe, options)
                 #if i == 1:
                 #    are, are_not = self.process_board (board)
                 #    print ("i is one", are, are_not, must, maybe, i, options, candidates (must, maybe, sure_y=are, sure_n=are_not))
                 if 0 < len (options) <= 2:
+                    print (f"2 or less {options}")
                     self.send_str (options[0])
                     sleep (1)
                     return True
@@ -83,13 +106,17 @@ class QuordleSpider (scrapy.Spider):
                     here[loc] = cell[1]
                 elif 'different spot' in cell:
                     not_here[loc] += cell[1]
+                #else:
+                #    not_here[loc] += cell[1]  # hack for when multiple letters tried, and some faile
                 loc = (loc % 5) + 1 
         return here, not_here
 
 
     def send_str (self, string):
-        self.driver.find_element_by_xpath('//body').send_keys(string + Keys.ENTER)
-        sleep(1) # give it time to settle down?
+        if string not in self.sent:
+            self.sent.append (string)
+            self.driver.find_element_by_xpath('//body').send_keys(string + Keys.ENTER)
+            sleep(1) # give it time to settle down?
 
 
     def start_requests(self):
@@ -108,12 +135,17 @@ class QuordleSpider (scrapy.Spider):
         stopped = True
         while stopped:
             sel = scrapy.Selector (text=self.driver.page_source)
-            kb = scrapy.Selector (text=sel.xpath ('//div[@aria-label="Keyboard"]').getall()[0])
+            #kb = scrapy.Selector (text=sel.xpath ('//div[@aria-label="Keyboard"]').getall()[0])
             boards = [scrapy.Selector (text=sel.xpath (f'//div[contains(@aria-label, "Game Board {i}")]').get()) for i in range(1,5)]
             ##print ("found board", len(board.get()), dir(board))
             ##print (self.process_board (board))
             #for i in range (len (boards)):
             for i in range (4):
+                try:
+                    kb = scrapy.Selector (text=sel.xpath ('//div[@aria-label="Keyboard"]').getall()[0])
+                except Exception:
+                    print ("keyboard gone awol")
+                    stopped = False
                 boards = [scrapy.Selector (text=sel.xpath (f'//div[contains(@aria-label, "Game Board {b}")]').get()) for b in range(1,5)]
                 board = boards[i]
                 #print (i, board.__class__, board.xpath('.//div[@aria-label]').getall())
