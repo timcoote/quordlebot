@@ -17,13 +17,16 @@ urllibLogger.setLevel(logging.WARNING)
 seleniumLogger.setLevel(logging.WARNING)
 protegoLogger.setLevel(logging.WARNING)
 
+
 class works(Enum):
     FAILS = auto()
     WORKS = auto()
     UNTRIED = auto()
 
+
 def enter_word (word):
     pass
+
 
 class QuordleSpider (scrapy.Spider):
     name="quordle"
@@ -61,7 +64,7 @@ class QuordleSpider (scrapy.Spider):
         #breakpoint()
         self.id_board (board)
 
-        for i in range(1,5):  #timing of moving between boards isn't right. 
+        for i in range(1,5):  #timing of moving between boards isn't right.
             must=''
             maybe=''
             for key in keyboard.css('button'):
@@ -107,17 +110,15 @@ class QuordleSpider (scrapy.Spider):
                 elif 'different spot' in cell:
                     not_here[loc] += cell[1]
                 #else:
-                #    not_here[loc] += cell[1]  # hack for when multiple letters tried, and some faile
-                loc = (loc % 5) + 1 
+                #    not_here[loc] += cell[1]  # hack for when multiple letters tried, and some failed
+                loc = (loc % 5) + 1
         return here, not_here
-
 
     def send_str (self, string):
         if string not in self.sent:
             self.sent.append (string)
             self.driver.find_element_by_xpath('//body').send_keys(string + Keys.ENTER)
             sleep(1) # give it time to settle down?
-
 
     def start_requests(self):
         print ("start requests")
