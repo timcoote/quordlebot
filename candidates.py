@@ -3,11 +3,11 @@ import enchant
 
 from copy import deepcopy
 
-dictionary = enchant.Dict ('en_US')
+dictionary = enchant.DictWithPWL ('en_US')
 #dictionary = enchant.Dict ('en_GB')
-must = 'ah'
+must = 'rago'
 may = 'qwrypfjkzxv'
-may = 'qwypfjzxv'
+may = 'qwupfhjkzxv'
 ys={1: '', 2: '', 3: '', 4: '', 5:''}
 ns={1: '', 2: '', 3: '', 4: '', 5:''}
 
@@ -50,6 +50,6 @@ def candidates (must, may, sure_y={1: '', 2: '', 3: '', 4: '', 5:''}, sure_n={1:
     return candidates
 
 if __name__ == "__main__":
-    print (candidates(must, may, sure_yes={1:'h',2:'',3:'',4:'',5:''}))
+    print (candidates(must, may, sure_n={1:'a',2:'r',3:'ag',4:'a',5:''}))
     
 
